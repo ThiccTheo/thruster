@@ -1,4 +1,7 @@
-use super::{corpus::Corpus, document::Document};
+use {
+    super::{corpus::Corpus, document::Document},
+    std::path::PathBuf,
+};
 
 pub struct Query {
     terms: Vec<String>,
@@ -1168,27 +1171,25 @@ impl Query {
         "zz",
     ];
 
-    pub fn search(self, corpus: &Corpus) -> Vec<String> {
+    pub fn search(self, corpus: &Corpus) -> Vec<PathBuf> {
         let mut res = corpus
             .docs()
             .iter()
             .map(|doc| {
                 (
-                    "",
+                    doc.path(),
                     self.terms
                         .iter()
                         .map(|term| Self::tf_idf(term, doc, corpus))
                         .sum::<f32>(),
                 )
             })
-            .map(|(url, score)| (url.to_owned(), score))
+            .map(|(path, score)| (path.to_owned(), score))
+            .filter(|(_, score)| *score > 0.001)
             .collect::<Vec<_>>();
 
         res.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
-        res.into_iter()
-            .filter(|(_, score)| *score > 0.001)
-            .map(|(url, _)| url)
-            .collect()
+        res.into_iter().map(|(url, _)| url).collect()
     }
 
     fn tf_idf(term: &str, doc: &Document, corpus: &Corpus) -> f32 {

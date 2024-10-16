@@ -1,20 +1,27 @@
 use {
     super::query::Query,
     scraper::{Html, Selector},
-    std::{collections::HashMap, fs, io::Error as IoError, path::Path},
+    std::{
+        collections::HashMap,
+        fs,
+        io::Error as IoError,
+        path::{Path, PathBuf},
+    },
 };
 
 #[derive(Debug)]
 pub struct Document {
+    path: PathBuf,
     term_to_count: HashMap<String, u32>,
 }
 
 impl Document {
     pub fn tf(&self, term: &str) -> u32 {
-        self.term_to_count
-            .get(&term.to_owned())
-            .copied()
-            .unwrap_or_default()
+        self.term_to_count.get(term).copied().unwrap_or_default()
+    }
+    
+    pub fn path(&self) -> &Path {
+        &self.path
     }
 }
 
@@ -23,6 +30,7 @@ impl TryFrom<&Path> for Document {
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
         let mut doc = Document {
+            path: path.to_path_buf(),
             term_to_count: HashMap::default(),
         };
 

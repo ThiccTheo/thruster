@@ -1,20 +1,28 @@
 mod corpus;
 mod document;
+mod engine;
 mod query;
 
-use {corpus::Corpus, std::path::PathBuf, query::Query};
+use {
+    corpus::Corpus,
+    eframe::{self, NativeOptions},
+    engine::Engine,
+    query::Query,
+    std::path::PathBuf,
+};
 
 fn main() {
-    let corpus = Corpus::try_from(
-        PathBuf::from(format!(
-            "{}/java/net",
-            env!("CARGO_MANIFEST_DIR")
-        ))
-        .as_path(),
+    // let corpus =
+    //     Corpus::try_from(PathBuf::from(format!("{}/java", env!("CARGO_MANIFEST_DIR"))).as_path())
+    //         .unwrap();
+
+    // let qry = Query::from("Arraylist");
+    // let res = qry.search(&corpus);
+    // println!("{:#?}", res);
+    eframe::run_native(
+        "thRUSTer",
+        NativeOptions::default(),
+        Box::new(|cc| Ok(Box::new(Engine::from(cc)))),
     )
     .unwrap();
-
-    let qry = Query::from("data structure insert algorithm time variable parameter");
-    let res = qry.search(&corpus);
-    println!("{:?}", res);
 }

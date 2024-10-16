@@ -17,9 +17,9 @@ impl Corpus {
         )
     }
 
-	pub fn docs(&self) -> &[Document] {
-		&self.0
-	}
+    pub fn docs(&self) -> &[Document] {
+        &self.0
+    }
 }
 
 impl TryFrom<&Path> for Corpus {
