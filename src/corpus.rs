@@ -3,6 +3,7 @@ use {
     std::{
         io::{Error as IoError, Result as IoResult},
         path::Path,
+        slice::Iter,
     },
 };
 
@@ -11,14 +12,13 @@ pub struct Corpus(Vec<Document>);
 
 impl Corpus {
     pub fn idf(&self, term: &str) -> f32 {
-        f32::log10(
-            (1. + self.0.len() as f32)
-                / (1. + self.0.iter().filter(|doc| doc.tf(term) > 0).count() as f32),
-        )
+        ((1. + self.0.len() as f32)
+            / (1. + self.0.iter().filter(|doc| doc.tf(term) > 0).count() as f32))
+            .log10()
     }
 
-    pub fn docs(&self) -> &[Document] {
-        &self.0
+    pub fn iter(&self) -> Iter<'_, Document> {
+        self.0.iter()
     }
 }
 

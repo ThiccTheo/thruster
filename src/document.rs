@@ -19,7 +19,7 @@ impl Document {
     pub fn tf(&self, term: &str) -> u32 {
         self.term_to_count.get(term).copied().unwrap_or_default()
     }
-    
+
     pub fn path(&self) -> &Path {
         &self.path
     }

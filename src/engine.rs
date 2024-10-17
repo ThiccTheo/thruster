@@ -6,20 +6,20 @@ use {
 };
 
 pub struct Engine {
-    qry: Query,
     corpus: Corpus,
+    search: String,
     links: Vec<PathBuf>,
 }
 
 impl From<&CreationContext<'_>> for Engine {
     fn from(_creation_ctx: &CreationContext) -> Self {
         Self {
-            links: vec![],
-            qry: Query::default(),
             corpus: Corpus::try_from(
-                PathBuf::from(format!("{}/java/math", env!("CARGO_MANIFEST_DIR"))).as_path(),
+                PathBuf::from(format!("{}\\java\\net", env!("CARGO_MANIFEST_DIR"))).as_path(),
             )
             .unwrap(),
+            search: String::default(),
+            links: vec![],
         }
     }
 }
@@ -29,14 +29,15 @@ impl App for Engine {
         CentralPanel::default().show(ctx, |ui| {
             ui.horizontal_top(|ui| {
                 ui.label("Query: ");
-                ui.text_edit_singleline(self.qry.qry());
+                ui.text_edit_singleline(&mut self.search);
                 if ui.button("Search").clicked() {
-                    self.links = self.qry.search(&self.corpus);
+                    self.links = Query::from(self.search.as_str()).search(&self.corpus);
                 }
             });
+            ui.horizontal_top(|ui| ui.label(format!("{} Results", self.links.len())));
             ScrollArea::vertical().auto_shrink(false).show_rows(
                 ui,
-                30.,
+                0.,
                 self.links.len(),
                 |ui, row_ct| {
                     for i in row_ct {
