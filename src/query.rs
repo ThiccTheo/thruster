@@ -3,9 +3,8 @@ use {
     std::path::PathBuf,
 };
 
-pub struct Query {
-    terms: Vec<String>,
-}
+#[derive(Default)]
+pub struct Query(String);
 
 impl Query {
     pub const STOP_WORDS: [&str; 1160] = [
@@ -1171,16 +1170,23 @@ impl Query {
         "zz",
     ];
 
-    pub fn search(self, corpus: &Corpus) -> Vec<PathBuf> {
+    pub fn qry(&mut self) -> &mut String {
+        &mut self.0
+    }
+
+    pub fn search(&mut self, corpus: &Corpus) -> Vec<PathBuf> {
         let mut res = corpus
             .docs()
             .iter()
             .map(|doc| {
                 (
                     doc.path(),
-                    self.terms
-                        .iter()
-                        .map(|term| Self::tf_idf(term, doc, corpus))
+                    self.0
+                        .as_str()
+                        .split_whitespace()
+                        .map(|term| term.to_lowercase())
+                        .filter(|term| !Self::STOP_WORDS.contains(&term.as_str()))
+                        .map(|term| Self::tf_idf(&term, doc, corpus))
                         .sum::<f32>(),
                 )
             })
@@ -1194,17 +1200,5 @@ impl Query {
 
     fn tf_idf(term: &str, doc: &Document, corpus: &Corpus) -> f32 {
         doc.tf(term) as f32 * corpus.idf(term)
-    }
-}
-
-impl From<&str> for Query {
-    fn from(qry: &str) -> Self {
-        Self {
-            terms: qry
-                .split_whitespace()
-                .map(|term| term.to_lowercase())
-                .filter(|term| !Self::STOP_WORDS.contains(&term.as_str()))
-                .collect(),
-        }
     }
 }
