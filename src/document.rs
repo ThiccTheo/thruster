@@ -1,7 +1,5 @@
 use {
-    super::query::Query,
-    scraper::{Html, Selector},
-    std::{
+    super::query::Query, scraper::{Html, Selector}, std::{
         collections::HashMap,
         fs,
         io::Error as IoError,
