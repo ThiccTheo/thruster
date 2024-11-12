@@ -8,7 +8,7 @@ pub struct Query {
 }
 
 impl Query {
-    pub const STOP_WORDS: [&str; 1160] = [
+    pub const STOP_WRDS: [&str; 1160] = [
         "0o",
         "0s",
         "3a",
@@ -1202,7 +1202,7 @@ impl From<&str> for Query {
             terms: qry
                 .split_whitespace()
                 .map(|term| term.to_lowercase())
-                .filter(|term| !Self::STOP_WORDS.contains(&term.as_str()))
+                .filter(|term| !Self::STOP_WRDS.contains(&term.as_str()))
                 .collect(),
         }
     }

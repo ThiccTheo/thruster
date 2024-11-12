@@ -10,12 +10,12 @@ use {
 #[derive(Debug)]
 pub struct Document {
     path: PathBuf,
-    term_to_count: HashMap<String, u32>,
+    term_to_ct: HashMap<String, u32>,
 }
 
 impl Document {
     pub fn tf(&self, term: &str) -> u32 {
-        self.term_to_count.get(term).copied().unwrap_or_default()
+        self.term_to_ct.get(term).copied().unwrap_or_default()
     }
 
     pub fn path(&self) -> &Path {
@@ -29,7 +29,7 @@ impl TryFrom<&Path> for Document {
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
         let mut doc = Document {
             path: path.to_path_buf(),
-            term_to_count: HashMap::default(),
+            term_to_ct: HashMap::default(),
         };
 
         Html::parse_document(&fs::read_to_string(path)?)
@@ -39,8 +39,8 @@ impl TryFrom<&Path> for Document {
             .text()
             .flat_map(|terms| terms.split_whitespace())
             .map(|term| term.to_lowercase())
-            .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
-            .for_each(|term| *doc.term_to_count.entry(term).or_default() += 1);
+            .filter(|term| !Query::STOP_WRDS.contains(&term.as_str()))
+            .for_each(|term| *doc.term_to_ct.entry(term).or_default() += 1);
 
         Ok(doc)
     }
