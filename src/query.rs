@@ -1174,12 +1174,12 @@ impl Query {
     pub fn search(self, corpus: &Corpus) -> Vec<PathBuf> {
         let mut links = corpus
             .iter()
-            .map(|doc| {
+            .map(|document| {
                 (
-                    doc.path(),
+                    document.path(),
                     self.terms
                         .iter()
-                        .map(|term| Self::tf_idf(term, doc, corpus))
+                        .map(|term| Self::tf_idf(term, document, corpus))
                         .sum::<f32>(),
                 )
             })

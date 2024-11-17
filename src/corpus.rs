@@ -13,7 +13,12 @@ pub struct Corpus(Vec<Document>);
 impl Corpus {
     pub fn idf(&self, term: &str) -> f32 {
         ((1. + self.0.len() as f32)
-            / (1. + self.0.iter().filter(|doc| doc.tf(term) > 0).count() as f32))
+            / (1.
+                + self
+                    .0
+                    .iter()
+                    .filter(|document| document.tf(term) > 0)
+                    .count() as f32))
             .log10()
     }
 
