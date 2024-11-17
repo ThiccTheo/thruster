@@ -8,7 +8,7 @@ pub struct Query {
 }
 
 impl Query {
-    pub const STOP_WRDS: [&str; 1160] = [
+    pub const STOP_WORDS: [&str; 1160] = [
         "0o",
         "0s",
         "3a",
@@ -1172,7 +1172,7 @@ impl Query {
     ];
 
     pub fn search(self, corpus: &Corpus) -> Vec<PathBuf> {
-        let mut res = corpus
+        let mut links = corpus
             .iter()
             .map(|doc| {
                 (
@@ -1187,22 +1187,22 @@ impl Query {
             .filter(|(_, score)| *score > 0.001)
             .collect::<Vec<_>>();
 
-        res.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
-        res.into_iter().map(|(url, _)| url).collect()
+        links.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
+        links.into_iter().map(|(url, _)| url).collect()
     }
 
-    fn tf_idf(term: &str, doc: &Document, corpus: &Corpus) -> f32 {
-        doc.tf(term) as f32 * corpus.idf(term)
+    fn tf_idf(term: &str, document: &Document, corpus: &Corpus) -> f32 {
+        document.tf(term) as f32 * corpus.idf(term)
     }
 }
 
 impl From<&str> for Query {
-    fn from(qry: &str) -> Self {
+    fn from(query: &str) -> Self {
         Self {
-            terms: qry
+            terms: query
                 .split_whitespace()
                 .map(|term| term.to_lowercase())
-                .filter(|term| !Self::STOP_WRDS.contains(&term.as_str()))
+                .filter(|term| !Self::STOP_WORDS.contains(&term.as_str()))
                 .collect(),
         }
     }

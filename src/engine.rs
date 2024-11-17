@@ -39,8 +39,8 @@ impl App for Engine {
                 ui,
                 0.,
                 self.links.len(),
-                |ui, row_ct| {
-                    for i in row_ct {
+                |ui, row_count| {
+                    for i in row_count {
                         if ui.link(self.links[i].as_path().to_str().unwrap()).clicked() {
                             open::that(self.links[i].clone()).unwrap();
                         }
