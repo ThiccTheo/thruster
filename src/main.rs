@@ -13,7 +13,7 @@ use {
 
 fn main() {
     eframe::run_native(
-        "thRUSTer",
+        "Thruster",
         {
             let mut options = NativeOptions::default();
             options.viewport = options.viewport.with_icon({

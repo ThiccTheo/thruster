@@ -1171,26 +1171,26 @@ impl Query {
         "zz",
     ];
 
-    pub fn search(self, corpus: &Corpus) -> Vec<(String, PathBuf)> {
-        let mut links = corpus
+    pub fn search(self, corpus: &Corpus) -> Vec<Document> {
+        let mut documents = corpus
             .iter()
             .map(|document| {
                 (
-                    (document.title(), document.path()),
+                    document,
                     self.terms
                         .iter()
                         .map(|term| Self::tf_idf(term, document, corpus))
                         .sum::<f32>(),
                 )
             })
-            .map(|((title, path), score)| ((title.to_owned(), path.to_owned()), score))
+            .map(|(document, score)| (document.clone(), score))
             .filter(|(_, score)| *score > 0.001)
             .collect::<Vec<_>>();
 
-        links.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
-        links
+        documents.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
+        documents
             .into_iter()
-            .map(|((title, path), _)| (title, path))
+            .map(|(document, _)| document)
             .collect()
     }
 

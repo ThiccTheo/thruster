@@ -9,7 +9,7 @@ use {
     },
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Document {
     path: PathBuf,
     title: String,
