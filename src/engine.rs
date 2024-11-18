@@ -8,7 +8,7 @@ use {
 pub struct Engine {
     corpus: Corpus,
     search: String,
-    links: Vec<PathBuf>,
+    document_data: Vec<(String, PathBuf)>,
 }
 
 impl From<&CreationContext<'_>> for Engine {
@@ -19,7 +19,7 @@ impl From<&CreationContext<'_>> for Engine {
             )
             .unwrap(),
             search: String::default(),
-            links: vec![],
+            document_data: vec![],
         }
     }
 }
@@ -31,18 +31,21 @@ impl App for Engine {
                 ui.label("Query: ");
                 ui.text_edit_singleline(&mut self.search);
                 if ui.button("Search").clicked() {
-                    self.links = Query::from(self.search.as_str()).search(&self.corpus);
+                    self.document_data = Query::from(self.search.as_str()).search(&self.corpus);
                 }
             });
-            ui.horizontal_top(|ui| ui.label(format!("{} Results", self.links.len())));
+            ui.horizontal_top(|ui| ui.label(format!("{} Results", self.document_data.len())));
             ScrollArea::vertical().auto_shrink(false).show_rows(
                 ui,
                 0.,
-                self.links.len(),
+                self.document_data.len(),
                 |ui, row_count| {
                     for i in row_count {
-                        if ui.link(self.links[i].as_path().to_str().unwrap()).clicked() {
-                            open::that(self.links[i].clone()).unwrap();
+                        if ui
+                            .link(&self.document_data[i].0)
+                            .clicked()
+                        {
+                            open::that(self.document_data[i].1.clone()).unwrap();
                         }
                     }
                 },
