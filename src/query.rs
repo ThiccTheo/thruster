@@ -1,7 +1,4 @@
-use {
-    super::{corpus::Corpus, document::Document},
-    std::path::PathBuf,
-};
+use super::{corpus::Corpus, document::Document};
 
 pub struct Query {
     terms: Vec<String>,

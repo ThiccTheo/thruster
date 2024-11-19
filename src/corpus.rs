@@ -2,7 +2,7 @@ use {
     super::document::Document,
     std::{
         io::{Error as IoError, Result as IoResult},
-        path::Path,
+        path::{Path, PathBuf},
         slice::Iter,
     },
 };
@@ -44,5 +44,17 @@ impl TryFrom<&Path> for Corpus {
             Ok(())
         }
         walk_dir(path, &mut corpus).map(|_| corpus)
+    }
+}
+
+impl TryFrom<&[PathBuf]> for Corpus {
+    type Error = IoError;
+
+    fn try_from(paths: &[PathBuf]) -> Result<Self, Self::Error> {
+        let mut documents = vec![];
+        for path in paths {
+            documents.extend(Self::try_from(path.as_path())?.0);
+        }
+        Ok(Corpus(documents))
     }
 }

@@ -2,6 +2,7 @@ mod corpus;
 mod document;
 mod engine;
 mod query;
+mod state;
 
 use {
     eframe::{self, NativeOptions},
