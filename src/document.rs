@@ -34,6 +34,10 @@ impl TryFrom<&Path> for Document {
     type Error = IoError;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        (path.extension().ok_or(IoError::other(""))? == "html")
+            .then_some(())
+            .ok_or(IoError::other(""))?;
+
         let html = Html::parse_document(&fs::read_to_string(path)?);
 
         let title = html
