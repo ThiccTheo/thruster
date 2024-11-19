@@ -34,9 +34,10 @@ impl TryFrom<&Path> for Document {
     type Error = IoError;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        (path.extension().ok_or(IoError::other(""))? == "html")
+        path.extension()
+            .is_some_and(|extension| extension == "html")
             .then_some(())
-            .ok_or(IoError::other(""))?;
+            .ok_or(IoError::other("invalid file extension, must be .html"))?;
 
         let html = Html::parse_document(&fs::read_to_string(path)?);
 
@@ -49,11 +50,7 @@ impl TryFrom<&Path> for Document {
             .unwrap()
             .to_owned();
 
-        let mut document = Document {
-            path: path.to_path_buf(),
-            title,
-            term_to_count: HashMap::default(),
-        };
+        let mut term_to_count = HashMap::default();
 
         html.select(&Selector::parse("body").unwrap())
             .next()
@@ -62,8 +59,12 @@ impl TryFrom<&Path> for Document {
             .flat_map(|terms| terms.split_whitespace())
             .map(|term| term.to_lowercase())
             .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
-            .for_each(|term| *document.term_to_count.entry(term).or_default() += 1);
+            .for_each(|term| *term_to_count.entry(term).or_default() += 1);
 
-        Ok(document)
+        Ok(Document {
+            path: path.to_owned(),
+            title,
+            term_to_count,
+        })
     }
 }

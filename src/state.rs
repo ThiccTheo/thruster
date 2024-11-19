@@ -21,12 +21,19 @@ impl State {
                 CentralPanel::default().show(ctx, |ui| {
                     ui.heading("Thruster - Local Search Engine");
                     if ui.button("Select folder(s) to index").clicked() {
-                        let Some(paths) = FileDialog::new().pick_folders() else {
+                        let Some(corpus) = FileDialog::new()
+                            .pick_folders()
+                            .into_iter()
+                            .flatten()
+                            .flat_map(|path| Corpus::try_from(path.as_path()))
+                            .reduce(|mut accumulator, corpus| {
+                                accumulator.extend(corpus);
+                                accumulator
+                            })
+                        else {
                             return;
                         };
-                        let Ok(corpus) = Corpus::try_from(paths.as_slice()) else {
-                            return;
-                        };
+
                         *self = Self::Search {
                             corpus,
                             search: String::default(),

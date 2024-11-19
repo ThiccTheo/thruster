@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use super::{corpus::Corpus, document::Document};
 
 pub struct Query {
@@ -1169,7 +1171,7 @@ impl Query {
     ];
 
     pub fn search(self, corpus: &Corpus) -> Vec<Document> {
-        let mut documents = corpus
+        corpus
             .iter()
             .map(|document| {
                 (
@@ -1182,13 +1184,9 @@ impl Query {
             })
             .map(|(document, score)| (document.clone(), score))
             .filter(|(_, score)| *score > 0.001)
-            .collect::<Vec<_>>();
-
-        documents.sort_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap());
-        documents
-            .into_iter()
+            .sorted_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap())
             .map(|(document, _)| document)
-            .collect()
+            .collect::<Vec<_>>()
     }
 
     fn tf_idf(term: &str, document: &Document, corpus: &Corpus) -> f32 {
