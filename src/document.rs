@@ -41,30 +41,28 @@ impl TryFrom<&Path> for Document {
 
         let html = Html::parse_document(&fs::read_to_string(path)?);
 
-        let title = html
-            .select(&Selector::parse("title").unwrap())
-            .next()
-            .unwrap()
-            .text()
-            .next()
-            .unwrap()
-            .to_owned();
-
-        let mut term_to_count = HashMap::default();
-
-        html.select(&Selector::parse("body").unwrap())
-            .next()
-            .unwrap()
-            .text()
-            .flat_map(|terms| terms.split_whitespace())
-            .map(|term| term.to_lowercase())
-            .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
-            .for_each(|term| *term_to_count.entry(term).or_default() += 1);
-
         Ok(Document {
             path: path.to_owned(),
-            title,
-            term_to_count,
+            title: html
+                .select(&Selector::parse("title").unwrap())
+                .next()
+                .unwrap()
+                .text()
+                .next()
+                .unwrap()
+                .to_owned(),
+            term_to_count: html
+                .select(&Selector::parse("body").unwrap())
+                .next()
+                .unwrap()
+                .text()
+                .flat_map(|terms| terms.split_whitespace())
+                .map(|term| term.to_lowercase())
+                .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
+                .fold(HashMap::default(), |mut term_to_count, term| {
+                    *term_to_count.entry(term).or_default() += 1;
+                    term_to_count
+                }),
         })
     }
 }
