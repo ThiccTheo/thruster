@@ -2,13 +2,13 @@ use {
     super::document::Document,
     std::{
         io::{Error as IoError, Result as IoResult},
+        ops::Deref,
         path::Path,
         slice::Iter,
     },
 };
 
-#[derive(Debug)]
-pub struct Corpus(Vec<Document>);
+pub struct Corpus(Box<[Document]>);
 
 impl Corpus {
     pub fn idf(&self, term: &str) -> f32 {
@@ -25,28 +25,49 @@ impl Corpus {
     pub fn iter(&self) -> Iter<'_, Document> {
         self.0.iter()
     }
-
-    pub fn extend(&mut self, other: Self) {
-        self.0.extend(other.0);
-    }
 }
 
 impl TryFrom<&Path> for Corpus {
     type Error = IoError;
 
-    fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        let mut corpus = Corpus(vec![]);
+    fn try_from(directory: &Path) -> Result<Self, Self::Error> {
+        let mut documents = vec![];
 
-        fn walk_dir(path: &Path, corpus: &mut Corpus) -> IoResult<()> {
+        fn walk_directory(path: &Path, documents: &mut Vec<Document>) -> IoResult<()> {
             if path.is_dir() {
                 for entry in path.read_dir()?.flatten() {
-                    walk_dir(&entry.path(), corpus)?
+                    walk_directory(&entry.path(), documents)?
                 }
             } else {
-                corpus.0.push(Document::try_from(path)?);
+                documents.push(Document::try_from(path)?);
             }
             Ok(())
         }
-        walk_dir(path, &mut corpus).map(|_| corpus)
+        walk_directory(directory, &mut documents).map(|_| Corpus(documents.into_boxed_slice()))
+    }
+}
+
+impl TryFrom<&[&Path]> for Corpus {
+    type Error = IoError;
+
+    fn try_from(directories: &[&Path]) -> Result<Self, Self::Error> {
+        if directories.is_empty() {
+            Err(IoError::other("no folders were selected"))
+        } else {
+            directories
+                .into_iter()
+                .map(Deref::deref)
+                .map(Corpus::try_from)
+                .reduce(|accumulator, corpus| {
+                    accumulator.map(|accumulator| {
+                        let mut accumulator_documents = accumulator.0.into_vec();
+                        let corpus_documents =
+                            corpus.map(|corpus| corpus.0.into_vec()).unwrap_or_default();
+                        accumulator_documents.extend(corpus_documents);
+                        Corpus(accumulator_documents.into_boxed_slice())
+                    })
+                })
+                .unwrap()
+        }
     }
 }

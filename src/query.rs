@@ -1170,7 +1170,7 @@ impl Query {
         "zz",
     ];
 
-    pub fn search(self, corpus: &Corpus) -> Vec<Document> {
+    pub fn search(self, corpus: &Corpus) -> Box<[Document]> {
         corpus
             .iter()
             .map(|document| {
@@ -1182,11 +1182,11 @@ impl Query {
                         .sum::<f32>(),
                 )
             })
-            .map(|(document, score)| (document.clone(), score))
             .filter(|(_, score)| *score > 0.001)
             .sorted_by(|(_, score1), (_, score2)| score2.partial_cmp(score1).unwrap())
-            .map(|(document, _)| document)
-            .collect::<Vec<_>>()
+            .map(|(document, _)| document.clone())
+            .collect_vec()
+            .into_boxed_slice()
     }
 
     fn tf_idf(term: &str, document: &Document, corpus: &Corpus) -> f32 {
@@ -1199,7 +1199,7 @@ impl From<&str> for Query {
         Self {
             terms: query
                 .split_whitespace()
-                .map(|term| term.to_lowercase())
+                .map(str::to_lowercase)
                 .filter(|term| !Self::STOP_WORDS.contains(&term.as_str()))
                 .collect(),
         }

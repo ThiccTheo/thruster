@@ -9,7 +9,7 @@ use {
     },
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Document {
     path: PathBuf,
     title: String,
@@ -37,12 +37,12 @@ impl TryFrom<&Path> for Document {
         path.extension()
             .is_some_and(|extension| extension == "html")
             .then_some(())
-            .ok_or(IoError::other("invalid file extension, must be .html"))?;
+            .ok_or(Self::Error::other("invalid file extension, must be .html"))?;
 
         let html = Html::parse_document(&fs::read_to_string(path)?);
 
         Ok(Document {
-            path: path.to_owned(),
+            path: path.to_path_buf(),
             title: html
                 .select(&Selector::parse("title").unwrap())
                 .next()
@@ -50,14 +50,14 @@ impl TryFrom<&Path> for Document {
                 .text()
                 .next()
                 .unwrap()
-                .to_owned(),
+                .to_string(),
             term_to_count: html
                 .select(&Selector::parse("body").unwrap())
                 .next()
                 .unwrap()
                 .text()
-                .flat_map(|terms| terms.split_whitespace())
-                .map(|term| term.to_lowercase())
+                .flat_map(str::split_whitespace)
+                .map(str::to_lowercase)
                 .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
                 .fold(HashMap::default(), |mut term_to_count, term| {
                     *term_to_count.entry(term).or_default() += 1;

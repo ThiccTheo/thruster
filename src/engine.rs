@@ -3,6 +3,7 @@ use {
     eframe::{App, CreationContext, Frame},
     egui::{CentralPanel, Context, ScrollArea},
     rfd::FileDialog,
+    std::path::PathBuf,
 };
 
 pub enum Engine {
@@ -10,7 +11,7 @@ pub enum Engine {
     Search {
         corpus: Corpus,
         search: String,
-        result: Vec<Document>,
+        result: Box<[Document]>,
     },
 }
 
@@ -29,23 +30,22 @@ impl App for Engine {
                 CentralPanel::default().show(ctx, |ui| {
                     ui.heading("Thruster - Local Search Engine");
                     if ui.button("Select folder(s) to index").clicked() {
-                        let Some(corpus) = FileDialog::new()
-                            .pick_folders()
-                            .into_iter()
-                            .flatten()
-                            .flat_map(|path| Corpus::try_from(path.as_path()))
-                            .reduce(|mut accumulator, corpus| {
-                                accumulator.extend(corpus);
-                                accumulator
-                            })
-                        else {
+                        let Ok(corpus) = Corpus::try_from(
+                            FileDialog::new()
+                                .pick_folders()
+                                .iter()
+                                .flatten()
+                                .map(PathBuf::as_path)
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        ) else {
                             return;
                         };
 
                         *self = Self::Search {
                             corpus,
                             search: String::default(),
-                            result: vec![],
+                            result: Box::default(),
                         };
                     }
                 });
