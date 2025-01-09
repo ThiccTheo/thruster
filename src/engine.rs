@@ -17,8 +17,7 @@ pub enum Engine {
 
 impl From<&CreationContext<'_>> for Engine {
     fn from(creation_ctx: &CreationContext) -> Self {
-        creation_ctx.egui_ctx.set_zoom_factor(1.25);
-
+        creation_ctx.egui_ctx.set_zoom_factor(2.);
         Self::Home
     }
 }
@@ -28,26 +27,28 @@ impl App for Engine {
         match self {
             Self::Home => {
                 CentralPanel::default().show(ctx, |ui| {
-                    ui.heading("Thruster - Local Search Engine");
-                    if ui.button("Select folder(s) to index").clicked() {
-                        let Ok(corpus) = Corpus::try_from(
-                            FileDialog::new()
-                                .pick_folders()
-                                .iter()
-                                .flatten()
-                                .map(PathBuf::as_path)
-                                .collect::<Vec<_>>()
-                                .as_slice(),
-                        ) else {
-                            return;
-                        };
+                    ui.vertical_centered_justified(|ui| {
+                        ui.heading("Thruster - Local Search Engine");
+                        if ui.button("Select folder(s) to index").clicked() {
+                            let Ok(corpus) = Corpus::try_from(
+                                FileDialog::new()
+                                    .pick_folders()
+                                    .iter()
+                                    .flatten()
+                                    .map(PathBuf::as_path)
+                                    .collect::<Vec<_>>()
+                                    .as_slice(),
+                            ) else {
+                                return;
+                            };
 
-                        *self = Self::Search {
-                            corpus,
-                            search: String::default(),
-                            result: Box::default(),
-                        };
-                    }
+                            *self = Self::Search {
+                                corpus,
+                                search: String::default(),
+                                result: Box::default(),
+                            };
+                        }
+                    });
                 });
             }
             Self::Search {
@@ -56,7 +57,7 @@ impl App for Engine {
                 result,
             } => {
                 CentralPanel::default().show(ctx, |ui| {
-                    ui.horizontal_top(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         ui.label("Query: ");
                         ui.text_edit_singleline(search);
                         if ui.button("Search").clicked() {
@@ -73,6 +74,7 @@ impl App for Engine {
                                 if ui.link(result[i].title()).clicked() {
                                     open::that(result[i].path()).unwrap();
                                 }
+                                ui.add_space(15.);
                             }
                         },
                     );
