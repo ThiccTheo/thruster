@@ -1,5 +1,4 @@
 use {
-    super::query::Query,
     scraper::{Html, Selector},
     std::{
         collections::HashMap,
@@ -58,7 +57,6 @@ impl TryFrom<&Path> for Document {
                 .text()
                 .flat_map(str::split_whitespace)
                 .map(str::to_lowercase)
-                .filter(|term| !Query::STOP_WORDS.contains(&term.as_str()))
                 .fold(HashMap::default(), |mut term_to_count, term| {
                     *term_to_count.entry(term).or_default() += 1;
                     term_to_count
