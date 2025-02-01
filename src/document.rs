@@ -4,14 +4,14 @@ use {
         collections::HashMap,
         fs,
         io::Error as IoError,
-        path::{Path, PathBuf},
+        path::Path,
     },
 };
 
 #[derive(Clone)]
 pub struct Document {
-    path: PathBuf,
-    title: String,
+    path: Box<Path>,
+    title: Box<str>,
     term_to_count: HashMap<String, u32>,
 }
 
@@ -41,7 +41,7 @@ impl TryFrom<&Path> for Document {
         let html = Html::parse_document(&fs::read_to_string(path)?);
 
         Ok(Document {
-            path: path.to_path_buf(),
+            path: path.to_path_buf().into_boxed_path(),
             title: html
                 .select(&Selector::parse("title").unwrap())
                 .next()
@@ -49,7 +49,8 @@ impl TryFrom<&Path> for Document {
                 .text()
                 .next()
                 .unwrap()
-                .to_string(),
+                .to_string()
+                .into_boxed_str(),
             term_to_count: html
                 .select(&Selector::parse("body").unwrap())
                 .next()
