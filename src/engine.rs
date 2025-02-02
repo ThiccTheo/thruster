@@ -23,7 +23,7 @@ impl From<&CreationContext<'_>> for Engine {
 }
 
 impl App for Engine {
-    fn update(&mut self, ctx: &Context, frame: &mut Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         match self {
             Self::Home => {
                 CentralPanel::default().show(ctx, |ui| {
